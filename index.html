@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizing Transport Data: Economic Center Insights</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-section">
+            <h1>🌾  <img src="https://cdn-icons-png.flaticon.com/512/7511/7511667.png" style="width: 60px; height: 60px; margin: auto" />  🚛</h1><h2>Agricultural Transport & Market Access Survey</h2>
+            <div class="intro-box">
+                <p>We are studying how farmers transport goods to market, especially to <strong>Dedicated Economic Centres and Economic Centres across Sri Lanka</strong>, and the challenges they face along these routes.</p>
+                <p>Your responses will help us understand transportation patterns, return load gaps, and access issues. This information will be used to support better infrastructure planning and improve access to markets for rural farming communities.</p>
+                <p style="font-weight: bold; color: #2e7d32;"><strong>Thank you for your valuable input!</strong></p>
+            </div>
+            <form id="mainform" onsubmit="return submitButton();">
+                <div class="form-group">
+                    <label for="mainrole">Main role</label>
+                    <select id="mainrole" required onchange="toggleOtherInput(this, 'mainrole_other')">
+                        <option value="">--Select role--</option>
+                        <option>Farmer</option>
+                        <option>Transporter (Hired)</option>
+                        <option>Farmer + Transporter (Own vehicle)</option>
+                        <option>Middleman / Collector</option>
+                        <option>Other</option>
+                    </select>
+                    <input type="text" id="mainrole_other" class="hidden other-input" placeholder="Please specify your role" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Farm Location</label>
+                    <button type="button" id="getLocationBtn">📍 Mark Crop Origin on Map</button>
+                    <button type="button" id="clearLocationBtn" style="margin-left:0px; margin-top: 5px;">❌ Clear Location</button>
+                    <p id="locationStatus">No location selected.</p>
+
+                    <input type="hidden" id="latitude" name="latitude">
+                    <input type="hidden" id="longitude" name="longitude">
+                    <input type="hidden" id="district" name="district">
+                </div>
+                
+                <div class="form-group">
+                    <label for="usualsellingplace">Usual selling place (Economic Center or Market)</label>
+                    <select id="usualsellingplace" required onchange="toggleOtherInput(this, 'usualsellingplace_other')">
+                        <option value="">--Select selling place--</option>
+                        <option>Dedicated Economic Centre - Ampara</option>
+                        <option>Dedicated Economic Centre - Bokundara</option>
+                        <option>Dedicated Economic Centre - Dambulla</option>
+                        <option>Dedicated Economic Centre - Embilipitiya</option>
+                        <option>Dedicated Economic Centre - Jaffna</option>
+                        <option>Dedicated Economic Centre - Kandahandiya</option>
+                        <option>Dedicated Economic Centre - Keppatipola</option>
+                        <option>Dedicated Economic Centre - Kilinochchi</option>
+                        <option>Dedicated Economic Centre - Kuruduwaththa</option>
+                        <option>Dedicated Economic Centre - Meegoda</option>
+                        <option>Dedicated Economic Centre - Narahenpita</option>
+                        <option>Dedicated Economic Centre - Nuwaraeliya</option>
+                        <option>Dedicated Economic Centre - Rathmalana</option>
+                        <option>Dedicated Economic Centre - Thambuttegama</option>
+                        <option>Dedicated Economic Centre - Vavuniya</option>
+                        <option>Dedicated Economic Centre - Veyangoda</option>
+                        <option>Dedicated Economic Centre - Welisara</option>
+                        <option>Economic Centre - Egaloya</option>
+                        <option>Economic Centre - Menikkumbura</option>
+                        <option>Economic Centre - Norochcholai</option>
+                        <option>Other</option>
+                    </select>
+                    <input type="text" id="usualsellingplace_other" class="hidden other-input" placeholder="Please specify place" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="mainproductyoutransport">Main product you transport</label>
+                    <select id="mainproductyoutransport" required onchange="toggleOtherInput(this, 'mainproduct_other')">
+                        <option value="">--Select product--</option>
+                        <option>Vegetables</option>
+                        <option>Fruits</option>
+                        <option>Rice</option>
+                        <option>Dairy</option>
+                        <option>Other</option>
+                    </select>
+                    <input type="text" id="mainproduct_other" class="hidden other-input" placeholder="Please specify" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="typeofvehicleusedfortransport">Type of vehicle used for transport</label>
+                    <div id="typeofvehicleusedfortransport" class="checkbox-group-horizontal">
+                        <label><input type="checkbox" name="vehicle" value="Lorry"><span>🚛 Lorry</span></label>
+                        <label><input type="checkbox" name="vehicle" value="Tractor"><span>🚜 Tractor</span></label>
+                        <label><input type="checkbox" name="vehicle" value="3-wheeler"><span>🛺 3-wheeler</span></label>
+                        <label><input type="checkbox" name="vehicle" value="Bus"><span>🚌 Bus</span></label>
+                        <label><input type="checkbox" name="vehicle" value="Train"><span>🚂 Train</span></label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="marketvisitfrequency">Market visit frequency</label>
+                    <select id="marketvisitfrequency" required>
+                        <option value="">--Select frequency--</option>
+                        <option>Daily</option>
+                        <option>Weekly</option>
+                        <option>Monthly</option>
+                        <option>Seasonally</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="itemsyoubringbackafterselling">Items you bring back after selling</label>
+                    <div id="itemsyoubringbackafterselling" class="checkbox-group-horizontal">
+                        <label><input type="checkbox" name="item" value="Fertilizer"><span>🌱 Fertilizer</span></label>
+                        <label><input type="checkbox" name="item" value="Crates"><span>📦 Crates</span></label>
+                        <label><input type="checkbox" name="item" value="Family items"><span>🏠 Family items</span></label>
+                        <label><input type="checkbox" name="item" value="Nothing"><span>❌ Nothing</span></label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="problemsyoufaceintransportation">Problems you face in transportation</label>
+                    <div id="problemsyoufaceintransportation" class="checkbox-group-horizontal">
+                        <label><input type="checkbox" name="problem" value="Bad roads"><span>🛣️ Bad roads</span></label>
+                        <label><input type="checkbox" name="problem" value="High fuel cost"><span>⛽ High fuel cost</span></label>
+                        <label><input type="checkbox" name="problem" value="No vehicle"><span>🚫 No vehicle</span></label>
+                        <label><input type="checkbox" name="problem" value="Long distance"><span>📏 Long distance</span></label>
+                        <label><input type="checkbox" name="problem" value="No Problems"><span>❌ No Problems</span></label>
+                        <label><input type="checkbox" name="problem" value="Other" id="problem_other_cb" onchange="toggleProblemOther()"><span>❓ Other</span></label>
+                    </div>
+                    <input type="text" id="problem_other" class="hidden other-input" placeholder="Please specify" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="suggestionsorcomments">Suggestions or comments</label>
+                    <input type="text" id="suggestionsorcomments" placeholder="(optional)"/>
+                </div>
+                
+                <div class="button-group">
+                    <input type="reset" id="resetbtn" class="btn btn-reset" value="🔄 Reset"/>
+                    <input type="submit" id="submit" class="btn btn-submit" value="📤 Submit"/>
+                </div>
+            </form>
+
+            <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) {}"></iframe>
+
+            <form id="googleform" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSdGBCE5JXTAG_-z31wMVPVYlQtkcXXNGQXmwwGYH9S-EhkrGA/formResponse" method="POST" target="hidden_iframe" style="display:none;">
+                <input type="hidden" name="entry.625217626" id="google_mainrole">
+                <input type="hidden" name="entry.1705214948" id="google_farmlocation">
+                <input type="hidden" name="entry.464632631" id="google_latitude">
+                <input type="hidden" name="entry.1838351772" id="google_longitude">
+                <input type="hidden" name="entry.491498205" id="google_usualsellingplace">
+                <input type="hidden" name="entry.2118800466" id="google_mainproductyoutransport">
+                <input type="hidden" name="entry.1343165671" id="google_typeofvehicleusedfortransport">
+                <input type="hidden" name="entry.1828190145" id="google_marketvisitfrequency">
+                <input type="hidden" name="entry.1396768237" id="google_itemsyoubringbackafterselling">
+                <input type="hidden" name="entry.788932284" id="google_problemsyoufaceintransportation">
+                <input type="hidden" name="entry.854028340" id="google_suggestionsorcomments">
+            </form>
+        </div>
+        
+        <!-- Map Section -->
+        <div class="map-section">
+            <div class="map-container">
+                <div class="map-header">
+                    🗺️ Sri Lanka Transportation Routes & Economic Centers
+                </div>
+                <div class="map-content">
+                    <div id="map"></div>
+                </div>
+            </div>
+            <!-- Map Legend -->
+            <div class="map-legend" style="left: 20px; right: auto; bottom: 20px;">
+                <h4 style="margin-top: 0; color: #1976d2;">Legend</h4>
+
+                <div class="legend-item">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7511/7511667.png" alt="Dedicated Economic Centre" style="width: 20px; height: 20px; margin-right: 8px;" />
+                    <span>Dedicated Economic Centre</span>
+                </div>
+
+                <div class="legend-item">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1233/1233265.png" alt="Economic Centre" style="width: 20px; height: 20px; margin-right: 8px;" />
+                    <span>Economic Centre</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: blue; width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;"></div>
+                    <span>Farm Location</span>
+                </div>
+            </div>
+        </div>            
+
+        <!-- Statistics Panel -->
+        <div class="stats-panel">
+            <h4 style="margin-top: 0; color: #1976d2; text-align: center; font-size: 25px;">Survey Stats</h4>
+            <div class="stat-item" id="stat-responses">
+                <strong>📊 Responses: </strong>
+            </div>
+            <div class="stat-item" style="white-space: normal; text-align: center;">
+                <strong>🌾 Main Crop</strong>
+                <div id="stat-maincrop" style="margin-top: 5px; text-align: center;"></div>
+            </div>
+            <div class="stat-item" style="white-space: normal; text-align: center;">
+                <strong>🛒 Top Market</strong>
+                <div id="stat-topmarket" style="margin-top: 5px; text-align: center;"></div>
+            </div>
+            <div class="stat-item" style="white-space: normal;">
+                <strong>📍 Top District by Crop</strong>
+                <div id="stat-topdistrict" style="margin-top: 5px; text-align: left;"></div>
+            </div>
+            <div class="stat-item" style="text-align: center;">
+                <h4 class="issues-title">⚠️ Transport Issues</h4>
+                <div style="position: relative; width: 100%; max-width: 250px; height: 250px; margin: 0 auto;">
+                    <canvas id="transportIssuesChart"></canvas>
+                    <button id="showMoreIssuesBtn" class="more-btn"
+                            aria-haspopup="dialog"
+                            aria-controls="issueModal"
+                            aria-label="Show detailed transport issues">
+                      More
+                    </button>
+                </div>
+
+                <!-- Modal -->
+                <div id="issueModal" class="modal hidden"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="transportIssuesTitle">
+                    <div class="modal-content">
+                        <span id="closeModal" class="close-btn">&times;</span>
+                        <h3 id="transportIssuesTitle">📋 Detailed Transport Issues</h3>
+                        <div id="allTransportIssuesList"></div>
+                    </div>
+                </div>
+                <div id="statsLoader" class="stats-loader hidden">
+                    <div class="spinner"></div> Loading…
+                </div>
+            </div>
+
+            <!-- Distance Calculator -->
+            <div class="distance-calculator">
+                <h4>📏 Distance Calculator</h4>
+                
+                <div class="calc-option" id="routeCalcOption">
+                    🗺️ Route Calculator
+                </div>
+                <div class="calc-option" id="nearestCentersOption">
+                    📍 Find Nearest Centers
+                </div>
+                
+                <div class="calc-status" id="calcStatus">
+                    Select an option above
+                </div>
+                
+                <div class="nearest-centers-list" id="nearestCentersList"></div>
+                
+                <div class="calc-buttons">
+                    <button class="calc-btn" id="clearCalcBtn">🗑️ Clear</button>
+                    <button class="calc-btn" id="resetCalcBtn">🔄 Reset</button>
+                </div>
+            </div>
+        </div>
+                
+        
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="main.js"></script>
+
+    <script>
+    </script>
+
+</body>
+</html>
